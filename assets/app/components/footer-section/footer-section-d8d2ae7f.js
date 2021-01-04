@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").directive("footerSection",function(){return{scope:{compact:"="},templateUrl:"/assets/app/components/footer-section/footer-section.tpl-156bcc57.html",controller:["$scope",function(e){e.currentYear=new Date}]}});

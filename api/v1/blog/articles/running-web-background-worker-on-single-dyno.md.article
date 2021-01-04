@@ -1,0 +1,32 @@
+During developing [WakeMyDyno.com](http://wakemydyno.com) around 2012, I faced a very interesting challenge; how to run a background worker for free? Not paying for things was more like a mini game. That time Heroku was running 24/7 with proper pinging on free tier but adding a separate dyno for background tasks was something you eventually had to pay for. Many tools popped up helping reducing costs by, for example, autoscaling number of workers depending on the amount of work.
+
+Since my app is very tiny, with small memory consumption footprint and not much traffic, I developed a simple and clever trick to run background code on a same, web, dyno. I used `spawn` ruby method.
+
+```ruby
+spawn('bundle exec rake url_checking');
+```
+
+Later on, when moving from Thin to Unicorn, I had to use an instance variable caching to spawn only one background worker.
+
+config `unicorn.rb` file looks like:
+
+```
+worker_processes 4
+timeout 30
+preload_app true
+
+before_fork do |server, worker|
+  if defined?(ActiveRecord::Base)
+    ActiveRecord::Base.connection.disconnect!
+    Rails.logger.info('Disconnected from ActiveRecord')
+  end
+
+  @pinging_background_process_pid ||= spawn('bundle exec rake pinging')
+  @urlcheck_background_process_pid ||= spawn('bundle exec rake url_check')
+
+  sleep 1
+end
+
+#...
+```
+These days Heroku has completely different pricing policy, <i>["sorry little guy; you had a good run"](https://twitter.com/wakemydyno/status/596356103224619009) (tweet from Heroku staff)</i>, but you can still save a few extra hours. Besides hackish/scriptkiddiesh nature of the solution, I still find it very interesting. For example, when you pay per Docker Container, like in [Hyper.sh](https://hyper.sh), you can run everything just from a single container. Implementation can be done via `supervisord` daemon or directly in a ruby codebase.

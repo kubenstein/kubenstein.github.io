@@ -1,0 +1,119 @@
+Core idea of Dependency Injection pattern is to be able to run a code while being loosely coupled with its definition. To do this, the dependency has to be passed (inject) as a param to a “runner” class.
+
+We usually pass all dependencies to an object through constructor params. Dependencies can also be passed to ordinary methods but I would call this a `Strategy pattern` rather than a Dependency Injection. However, I agree that technically those two do the same and in a same way.
+
+From my experience, dependency injections really shine while programming in a TDD manner. With DI it is very easy to plug some code “in between” of existing functionality in form of wrappers or middlewares. Tests, different env configurations (production vs development, different levels of logging) use different DI.
+
+Dependency Injection, by requires providing all dependencies through constructors, which can be actually really cumbersome. Mostly because root component will have to accept dependencies for their children components, even though those root component won’t be using all those dependencies themseves. That being said a dependency list can be really huge and passing all those params makes code cluttered and harder to maintain.
+
+### The Solution
+Solution is to pass only one object as a dependency - a Dependency Manager. A Dependency Manager usually is a global state but thats perfectly acceptable because <i>managing dependencies is a global concern.</i>
+
+In Ruby, with a bit of metaprogramming, we can achieve a really beautiful DI DSL.
+
+```ruby
+class SomeClass
+  include Import[repo: :items_repository] # example of DI definition
+  #...
+  def add(item)
+    repo.add(item) # usage of injected dependency
+  end
+end
+```
+For those who were also researching the topic, the code above may remind of [dry-auto_inject](http://dry-rb.org/gems/dry-auto_inject/) gem. `dry-auto_inject` is a beautiful piece of software, I highly recommend you to study its code. Great engineering and lots of inspiration!
+
+### My Own “dry-auto_inject”
+While experimenting with `dry-auto_inject`, I came across a problem specific to my project - I can’t pass any normal params to an object initializer. The initializer params are reserved for auto_injecting dependencies. That was quite a problem, because I still prefer to have a setup phase in an object lifecycle.
+
+So *I wrote my own implementation* of `Dry::AutoInject` with similar interface. It uses `deps` hash param in initializer to pass all dependencies. Thanks to that nesting, you can explicitly provide your own custom code instead of default injections.
+
+See example:
+
+```ruby
+#
+# `container` can be dry-contanier object
+# or anything that responds to resolve(name)
+# and returns an expected dependency
+Import = AutoInject.new(container)
+
+class UploadFileFromLocalDirectoryUsecase
+  include Import[:some_service, repo: :items_repository]
+
+  def initialize(params={})
+    super
+    @path_to_dir = params[:path_to_dir]
+  end
+
+  def call
+    repo.do_something         # aliased injected dependency
+    some_service.do_something # injected dependency
+  end
+end
+
+# Usage
+UploadFileFromLocalDirectoryUsecase.new(
+  path_to_dir: 'some/path/'
+).call
+
+# Or with custom dependency…
+
+UploadFileFromLocalDirectoryUsecase.new(
+  path_to_dir: 'some/path/',
+  deps: {
+    repo: DifferentRepository.new
+  }
+).call
+```
+
+### How it works
+My solution is a ~40LoC class, that acts as a factory for dynamically created ruby modules. The Factory requires a `resolver`, that can be anything that responds to a `resolve(dependency_name)` method. A ruby module, that is later `include'd`, is returned from a `[]` method. The module adds getters for all dependencies and an initializer that handles custom dependencies passed during object creation.
+
+### The implementation
+I will probably release my solution in a form of a ruby gem, but for now its just a standalone class.
+
+You can check the whole working example on this [gist](https://gist.github.com/kubenstein/8eedfdda7db288e3ad598e70e8d11f8a).
+
+```ruby
+class AutoInject
+  def initialize(resolver)
+    @resolver = resolver
+  end
+
+  def [](*dep_specs)
+    default_deps = prepare_deps(dep_specs)
+
+    Module.new do
+      define_method(:initialize) do |args={}|
+        @deps = default_deps.merge(args[:deps] || {})
+        super()
+      end
+
+      default_deps.each do |name, _|
+        define_method(name) { @deps[name] }
+      end
+    end
+  end
+
+  private
+
+  def prepare_deps(raw_specs)
+    raw_specs
+      .map { |raw_spec| normalize_dep_spec(raw_spec) }
+      .each_with_object({}) { |spec, h| h[spec[:alias]] = resolve(spec[:name])}
+  end
+
+  def normalize_dep_spec(raw_spec)
+    if raw_spec.is_a?(Hash)
+      key = raw_spec.keys[0]
+      value = raw_spec[key]
+      {alias: key, name: value}
+    else
+      {alias: raw_spec, name: raw_spec}
+    end
+  end
+
+  def resolve(name)
+    @resolver.resolve(name)
+  end
+end
+```

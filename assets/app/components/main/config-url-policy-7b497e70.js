@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").config(["$translateProvider",function(e){e.useLoaderCache(!0),e.preferredLanguage("en"),e.useStaticFilesLoader({prefix:"/api/v1/i18n/locale-",suffix:".json"})}]);

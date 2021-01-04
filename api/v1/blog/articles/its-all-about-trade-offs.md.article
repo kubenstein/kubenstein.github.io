@@ -1,0 +1,21 @@
+“It is all about trade-offs” - said one senior developer to me. “It depends - is the only valid answer” he added laughing.
+
+I was thinking a lot about this, and I finally understand what is the true meaning. No matter if we are talking about a framework, a technology, technic, programming style or any other non-programming issue, every decision will bring a value for a particular price. A price is often difficult to measure, because its implications are usually indirect and manifested themselves long time after they are made. Often there isn't a single choice but instead, months of little decisions. It is up to us to ensure that at the end of the day profits will outgrow costs. The key is to be aware there will be always implications, because there is always a reaction to an action.
+
+From Rails world, it is mostly the speed at the beginning followed by significant drop in a productivity later on, compared to making design decisions from the first day. Maintaining project design usually is actually not a single radical choice but rather constant and consequent reviewing and pushing for a good design.
+
+It is perfectly fine to leave a bit of mess here and there but within controlled boundaries. Why? Because we trade new features developing time. Does it really bring any value to clean it now? “Maybe it is ok to have 6 smaller sql queries instead of gigantic 1 which writing takes a whole day”..
+
+On the other hand not paying technical debt is a straight way to “a big ball of mud”. Senior developers understand this and, thanks to their experience, they can A) build modifications-friendy code in a first place, B) know when is the moment to pay the debt (a when focusing on refactoring is actually more beneficial than working on new features)
+
+It is all about trade-offs. If you can deliver software better using dry-rb stack, pick dry-rb stack. If Rails suites more for a task, pick Rails. I know one developer who had to write an extension to a node-based app. He preferred ruby for it is expressiveness so he bind node with ruby via Redis and delivered more and faster that way. That was his choice, more complex infrastructure for overall productivity.
+
+I watched a conference talk, don't remember the name unfortunately, where a guy showed XML specs for a JSON format... It is so unbelievable ridiculous, who would do this? Throwing resources to recode jsons as xmls! But maybe overall it was less expensive to write an adapter than adjusting whole multi milion dollar system. Someone did calculate costs and decided to go this way.
+
+There is always a story behind any decision, good if that story includes consciousness trade-offs analysis.
+
+I highly encourage any Rails developer to try to maintain their apps after initial 6 months of developing. Knowing there will be long maintaining phase, every decision will be analysed from completely different perspective.
+
+With tight deadlines making such decisions can be really challenging. requires lots of skills and lots of courage to push for quality. On the other hand involving full OOP craftsmanship but missing the deadline and sinking a project is irresponsible and unprofessional.
+
+Same applied to all kind of processes, company cultures, investments in staff and gear, testing strategies or pair-programming. A good balance of an income and outcome, short-time gains vs long-running stability. I stopped paying much attention to frameworks holy wars because, as a senior developer form the beginning of the article said, it always depends, it is always about trade-offs.

@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").directive("skillsSection",["$rootScope","$http","$translate","$location",function(){return{scope:{},templateUrl:"/assets/app/components/skills-section/skills-section.tpl-6eedab3d.html",controller:["$scope",function(o){o.scrollTo=function(o){document.querySelector(o).scrollIntoView({behavior:"smooth"})}}]}}]);

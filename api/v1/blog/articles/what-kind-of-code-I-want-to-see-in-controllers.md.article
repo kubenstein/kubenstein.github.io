@@ -1,0 +1,87 @@
+We create new classes because we can’t find any other good place that the logic could fit. It's desirable way of <i>growing</i> software according to OOP practices. We add new stuff and plug it to existing codebase. Usually there are no need to significantly change any other classes.
+
+In web development, classes related with handling web requests are often provided by frameworks. Forced structure combined with community driven guidelines, often result in quite unfortunate choices.
+
+```ruby
+def create
+  @ticket = Ticket.new(permitted_attributes)
+  if @ticket.save
+    redirect_to [:tickets]
+  else
+    render :new
+  end
+end
+```
+
+This is a typical Rails `create` action. A serious issue is a Http Handler (aka. Controller) is responsible for constructing an entity. Entities are often subjects of a very specific business rules that not related with http controllers. Problem is even more clear when we need to update data.
+
+```ruby
+@ticket = Ticket.new(permitted_attributes)
+@ticket.owner = current_user
+@ticket.status = Ticket::STATUS_PENDING
+```
+
+Changing to a Factory will clean the code a bit by extracting business decisions from a Http Handler:
+
+```ruby
+@ticket = Ticket.create_pending_for_user(user: current_user, permitted_attributes)
+```
+
+Name could be better though, because it won’t create anything yet actually. We have to wait for a controller to save `@ticket.save`, which brings us back again to the question why a Http Handler is responsible for constructing an entity? It is done because we need to know the result.
+
+We could return `true/false` from the factory:
+
+```
+if Ticket.create_pending_for_user(user: current_user, permitted_attributes)
+  redirect_to [:tickets]
+else
+  # no @ticket here!
+  render :new
+end
+```
+
+We traded problems, we removed creation logic from a Http Handler but we lost access to both, the entity and the creation process result. How to pass both then? We can return a tuple with result and an entity, [Trailblazer does this](http://trailblazer.to/gems/operation/1.1/#run). I not a big fan of tuples mostly because of order of fields that matter - you just have to know what is what. So I prefer <b>OOP techniques</b> and [delegate to proper method](/#/blog/observers-as-objects-communication-channel) based on a result:
+
+```
+def create
+  Ticket.create_pending_for_user(result_handler: self,
+                                 user: current_user,
+                                 permitted_attributes)
+end
+
+def ticket_created(_ticket)
+  redirect_to [:tickets]
+end
+
+def ticket_creation_failed(ticket)
+  @ticket = ticket
+  render :new
+end
+```
+
+This version meets all criteria. It keeps http related logic in a Http Handler, creating entity logic is in a factory. Necessary <i>messages</i> are passed in a clear way while providing all resources.
+
+This is a typical example of `Tell don't ask` principle.
+
+We have to set a contract between a factory and a `result_handler`, and we do it in most descriptive way. (I really would like to have java like interfaces in ruby to guard the contract). Users of our factory just have to know names and signatures of callbacks.
+
+Final practical touch would be to extract factory to a separate class instead keeping it as an AR class method:
+
+```
+def create
+  InitialTicketCreator.call(result_handler: self,
+                            user: current_user,
+                            permitted_attributes)
+end
+
+def ticket_created(_ticket)
+  redirect_to [:tickets]
+end
+
+def ticket_creation_failed(ticket)
+  @ticket = ticket
+  render :new
+end
+```
+
+And thats the code I want to see in Controllers.

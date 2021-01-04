@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").directive("main",function(){return{scope:{name:"@",text:"@"},templateUrl:"/assets/app/components/main/main.tpl-9f2569dd.html"}});

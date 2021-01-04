@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").run(["$rootScope","$location","$window",function(n,o,a){n.$on("$viewContentLoaded",function(){a.ga&&a.ga("send","pageview",{page:o.path()})})}]);
