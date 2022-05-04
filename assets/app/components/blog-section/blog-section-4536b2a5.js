@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").directive("blogSection",["$http",function(n){return{scope:{},templateUrl:"/assets/app/components/blog-section/blog-section.tpl-40a4ab9a.html",controller:["$scope",function(t){function o(){e()}function e(){n.get("/api/v1/blog/index.json").success(function(n){t.articles=n})}o()}]}}]);

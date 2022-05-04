@@ -1,0 +1,49 @@
+In a typical MVC Rails app, the V, instead of, View stands for a just template file...
+
+No matter if an app is a small site or really complex portal, views will always have logic. Marking menu option active, formatting dates or displaying different data based on logged in status of a guest.
+
+Typical Rails solutions are 1) to wrap logic as a helper 2) keep logic in a controller (or even a model). Having a presentation logic in a model feels so unnatural. Lucky, I don’t see this choice very often nowadays (except maybe `to_json`). Controllers are more common place for such transformation. We are already encouraged by the framework to make presentation decisions here.
+
+Convenient solution would be to have a separate layer to deal with all kinds of presentation logic. [Hanami](http://hanamirb.org/guides/views/overview/) and [Trailblazer](http://trailblazer.to/gems/cells/) do this by having a dedicated ruby class. Dealing with normal classes allows us to apply normal ruby OOP rules and practises.
+
+I wanted to try this approach (at that time I knew only about Cells gem from Trailblazer), so the goal was to create a simple yet functional replica proof of concept.
+
+For the simplicity purposes I pass `renderable` to each ViewModel instance and explicitly call render on it. `Renderable` in this context is just `self` from current controller.
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    Article::Index::View.new(self, articles: articles, user: current_user).call
+  end
+end
+```
+
+With a simple DSL I can see what params are required for a ViewModel to work:
+
+```ruby
+class Article::Index::View < ViewModel::Base
+  declared_params :articles, :user
+
+  #...
+end
+```
+
+In oposite to Trailblazer cells I didnt want to have any global helpers that magically map to ViewModel methods. So I solved it by passing a reference to self (renamed to "`_`").
+
+```ruby
+class Report::Show::View < ViewModel::Base
+  def formatted_user_header(user)
+    “#{user.name} (#{user.email})”
+  end
+end
+
+#
+# and in a template (slim)
+h1 = _.formatted_user_header(user)
+
+```
+
+I incorporated view layer in several of my projects and overall I’m happy with the results.
+
+My solution is avaliable as a ruby gem. Check ViewModel [source code](https://github.com/kubenstein/ViewModel) and detailed readme on Github!
+

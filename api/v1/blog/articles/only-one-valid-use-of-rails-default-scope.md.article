@@ -1,0 +1,42 @@
+With gaining experience in programming, the way how we look at many things changes. At first we love to hack things together, something <i>kinda</i> works and that what matters. Unfortunately, later on, when we have to modify the code, we can’t remember any of the fragile details. It may be quite frustrating, and actually dangerous, when some emergency hotfix has to be released. Sometimes a hack depends on a private API of some library. We may or may not know when and why things stopped working.
+As we become experienced we value stability more.
+<i>(plug after years: Stability, certainty and predictability are my top priority and everything I do and expect from other leans to those three values)</i>
+
+I think a better description than "stability" would be "predictability". We want to be confident that we know how things work, that we are sure we can take a look at the code and get general idea about overal logic. We can read line by line, function by function and file by file and nothing we see is unexpected. Its such a soothing feeling... To achieve this we have to find proper [balance in expressiveness, explicitness and mix of abstraction levels](/#/blog/why-do-we-write-functions). Explicitness over a magic.
+
+Rails is full of magic. It is something that is advertised, promoted and encouraged. Its not always that bad as many conventions are very useful, allowing every Rails dev to start from more or less same level.
+
+Implicitness that is expected is called "convention". Problems begin when lack of explicitness is not covered by any convention. Things happen and we don’t know why.
+My favourite example is <i>default scope</i>. Instead of explicitly asking for, for example, only active articles, we assume `active` narrowing is generally default behaviour. Same with all kind of soft-delete scoping. It is assumed that we want soft-deleted items to be filtered out. But data is just data, accessing it from a console may be perfectly valid scenario. From this perspective scoping is not desired, so should we have it as a default? We soft-delete because we feel we may need accessing deleted data under different circumstances. Otherwise we would just <i>hard</i> delete everything.
+
+Unscoping AR collection is a bit cumbersome but thats not the biggest problem. The biggest problem is we are often just not aware that scoping was applied. Things behave differently than what we expect, hurting confidence and questioning predictability of an app.
+My rule used to be to never use default scope. Using default scope always turned into problems.
+
+### Valid use case
+Recently, in one project I was working on, we introduced default scope in the way that I actualy find quite useful and safe.
+
+Shopping Cart example:
+```ruby
+class Order < ActiveRecord::Base
+  #...
+end
+
+class Cart < Order
+  default_scope { where(status: :cart) }
+  #...
+end
+```
+
+Users Visibility example:
+
+```ruby
+class User < ActiveRecord::Base
+  #...
+end
+
+class VisibleUser < User
+  default_scope { includes(:user_settings).where(user_settings: { visible: true }) }
+  #...
+end
+```
+We subclass AR class to express a business intention. Default scope is truly default here, programmers intuitively feel and expect it there.

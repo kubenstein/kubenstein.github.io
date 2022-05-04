@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").config(["$sceDelegateProvider",function(e){e.resourceUrlWhitelist(["self","https://player.vimeo.com/**"])}]);

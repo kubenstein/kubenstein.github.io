@@ -1,0 +1,1 @@
+angular.module("jakubniewczas").directive("commentsSection",["$http","$location","$routeParams",function(e,t,s){return{scope:{},templateUrl:"/assets/app/components/comments-section/comments-section.tpl-3fe29353.html",controller:["$scope",function(e){e.disqusConfig={disqus_shortname:"jakubniewczas",disqus_identifier:s.id,disqus_url:"http://jakubniewczas.pl/"+t.url()}}]}}]);

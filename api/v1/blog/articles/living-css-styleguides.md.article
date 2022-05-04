@@ -1,0 +1,75 @@
+I was a member of a team that was developing quite a big and complex E-commerce web application. Besides normal Rails duties, I was also assigned to lead the whole styling process. Our designer did a great job, intuitive and not aggressive design, user-friendly interface yet still full of those little and sweet details. To handle that amount of css requirements I proposed, and later kept pushing, to follow one simple rule - *Everything is a component*.
+
+### Everything is a Component
+I learned that way of thinking about building and styling components while working on Angular apps back in 2014. No matter if its JS or CSS (or any generic programming language). In CSS, is easy to call things components, in JS we can call them modules and in OO languages - classes. Building everything as a component is a manifestation of SRP (Single-responsibility principle) desires. SRP pushes for composition thinking. A Component is a group of other Components. Build small components out of primitives. Then build wrapper components that layout those. Each wrapper [represents different level of abstraction](/#/blog/why-do-we-write-functions). For example, buttons are grouped in a form of panel. A Panel is a text header and breadcrumbs. Components in Components in Components.
+If things represent a same concept you can add modifier flag to a component. If diffrences are more significant, I would split code into two separate components.
+
+### Styleguides
+I introduced css living styleguides to a project to be able to test my components. We had quite a lot components (~10k CSS LoC), both primitive ones, like texts or inputs, and composed, like panels, menus, forms and whole page layouts.
+I wanted to see them all on a single page, so I can scroll and quickly catch all errors. I wanted to be able to click on all clickable elements and see popups, modals and dropdowns, without having to go to particular pages of the app.
+*"Living"* aspect of the styleguide is the heart of this tool. After testing a few solutions I picked [livingstyleguide](https://github.com/livingstyleguide/livingstyleguide). The gem setup later in the blogpost.
+
+### The Unexpected Benefits
+While keeping things in a styleguide, I noticed two major improvements styleguides bring.
+
+#### Better components naming
+First, we reuse our components in a completely different environment and context. A styleguide environment is *CONTEXT* free. It has nothing to do with the application. This allows me quickly spot components that I named after application logic. Those could be named more generic. Many of components were renamed after pulling them to the styleguide. One example was a list of brands on a shop storefront. It was a unique design and no other element has anything in common with a brand list. At first I called it `brand-list` but in the stlyeguide, where texts are `lorem ipsum` and pictures are replaced with cats placeholders, it became clear that this component has nothing to do with brands at all. It was renamed to `card-list`.
+
+#### TDDing css components
+The second major improvement was that I started creating and designing components in the stylguide first, and then move them to the application. It was just quicker to reload the styleguide page, because it didnt touch any (often quite complex) application logic. This was, in fact, TDDing css components.
+
+### Styleguides setup
+I use [livingstyleguide](https://github.com/livingstyleguide/livingstyleguide) gem. It provides everything I need and is very simple to use. Every `@import`ed scss file has to have corresponding markdown with description and code example.
+
+Example of `_controls.md`:
+
+```no-highlight
+# Checkboxes
+
+~~~
+<div class="checkbox">
+    <input id="c1" type="checkbox">
+    <label for="c1"></label>
+</div>
+~~~
+
+# Switches
+~~~
+<div class="switch">
+    <input id="s1" type="checkbox">
+    <label for="s1">&nbsp;</label>
+</div>
+~~~
+
+```
+
+Which generates:
+
+![CSS Styleguide example Jakub Niewczas](/assets/s3/blog/living-css-styleguides/generated-example.jpg)
+
+With a little bit of tweaking I changed how styleguide itself looks to improve readability. Markdown files contained a brief introduction about a component and examples of use. Many of my components have modifier classes so I described all of them as well.
+
+My typical stylguide `assets/styles/styleguide.html.lsg` config file looks like:
+
+```YML
+#
+# CSS Styleguides
+#
+# visit on localhost:
+# http://localhost:3000/assets/styleguide.html
+#
+
+source: 'application.scss'
+footer: ''
+header: ''
+javascript-after:
+  - '../application.js'
+
+styleguide-scss: |
+  body {
+    background-color: #f6f4f4;
+  }
+  #...
+```
+
+I highly recommend incorporating styleguides in bigger codebases. It helps maintaining existing components, and it helps creating new ones. It gives hints when components do too much or are too  coupled with the application.
