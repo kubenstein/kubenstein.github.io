@@ -1,0 +1,4 @@
+1:"$Sreact.fragment"
+2:I[39756,["/hive/_next/static/chunks/652c309c9a6ce6bc.js","/hive/_next/static/chunks/0bd6498bda341889.js","/hive/_next/static/chunks/a4648234c1e7c5fe.js","/hive/_next/static/chunks/3154bd09e271645b.js","/hive/_next/static/chunks/77166d644b334b94.js"],"default"]
+3:I[37457,["/hive/_next/static/chunks/652c309c9a6ce6bc.js","/hive/_next/static/chunks/0bd6498bda341889.js","/hive/_next/static/chunks/a4648234c1e7c5fe.js","/hive/_next/static/chunks/3154bd09e271645b.js","/hive/_next/static/chunks/77166d644b334b94.js"],"default"]
+0:{"buildId":"F9ewZsWj8YTHinj1hKcnd","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}
